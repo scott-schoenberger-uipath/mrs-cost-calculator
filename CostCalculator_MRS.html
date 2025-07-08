@@ -1,63 +1,109 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Cost Estimator</title>
+  <title>Document Cost Estimator</title>
   <style>
-    body { font-family: Arial, sans-serif; }
+    body { font-family: Arial, sans-serif; margin: 20px; }
     label { display: block; margin: 8px 0 4px; }
     input[type="number"] { width: 80px; }
     .result { margin-top: 16px; font-weight: bold; }
+    table { border-collapse: collapse; margin-top: 20px; width: 100%; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
   </style>
 </head>
 <body>
   <h3>Document Cost Estimator</h3>
   <label>Number of documents:
-    <input id="docs" type="number" min="0" />
+    <input id="docs" type="number" min="0" value="1">
   </label>
   <label>Pages per document:
-    <input id="pages" type="number" min="0" />
+    <input id="pages" type="number" min="0" value="200">
   </label>
-  <label>
-    <input id="multimodal" type="checkbox" />
-    Include multimodal content? (charts, handwriting, etc.)
-  </label>
-  <label>
-    <input id="a4e_chat" type="checkbox" />
-    Include A4E Chat (optional)
-  </label>
-  <label>
-    <input id="action_center" type="checkbox" />
-    Include Action Center Licensing
-  </label>
+  <label><input id="multimodal" type="checkbox" checked> Include multimodal content?</label>
+  <label><input id="a4e_chat" type="checkbox" onchange="toggleA4E()"> Include A4E Chat (optional)</label>
+
+  <div id="a4e-options" style="display: none; margin-left: 20px; margin-bottom: 10px;">
+    <label>Number of A4E users:
+      <input id="a4e_users" type="number" min="0" value="10">
+    </label>
+    <label>Average A4E calls per user:
+      <input id="a4e_calls" type="number" min="0" value="60">
+    </label>
+    <p style="font-size: 0.9em; color: #555;">First 50 calls per user are free. After that: 1 AIU per call.</p>
+  </div>
 
   <button onclick="calculate()">Estimate Cost</button>
-  <p class="result" id="result"></p>
+
+  <div class="result" id="totalCost"></div>
+  <table id="breakdown" style="display: none;">
+    <thead>
+      <tr>
+        <th>Line Item</th>
+        <th>AIUs</th>
+        <th>Agent Units</th>
+        <th>Cost</th>
+        <th>Total Units</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
   <script>
+    function toggleA4E() {
+      const checked = document.getElementById("a4e_chat").checked;
+      document.getElementById("a4e-options").style.display = checked ? "block" : "none";
+    }
+
     function calculate() {
       const docs = parseFloat(document.getElementById("docs").value) || 0;
       const pages = parseFloat(document.getElementById("pages").value) || 0;
       const multimodal = document.getElementById("multimodal").checked;
       const a4eChat = document.getElementById("a4e_chat").checked;
-      const actionCenter = document.getElementById("action_center").checked;
+      const totalPages = docs * pages;
 
       let total = 0;
+      const rows = [];
 
-      // Line item pricing logic
-      total += docs * 1.00;                  // Maestro Instance
-      total += docs * 0.20;                  // MRS Agent
-      total += docs * 0.01;                  // Summarization
+      function addRow(name, aius, agentUnits, cost) {
+        const totalUnits = aius + agentUnits;
+        total += cost;
+        rows.push(`<tr>
+          <td>${name}</td>
+          <td>${aius.toFixed(2)}</td>
+          <td>${agentUnits.toFixed(2)}</td>
+          <td>$${cost.toFixed(2)}</td>
+          <td>${totalUnits.toFixed(2)}</td>
+        </tr>`);
+      }
+
+      addRow("Maestro Instance", 0, 0, docs * 1.00);
+
       if (multimodal) {
-        total += docs * pages * 0.04;        // 0.2 AIU/page × $0.20 = $0.04
-      }
-      if (a4eChat) {
-        total += docs * 0.10;                // Hypothetical price for A4E Chat
-      }
-      if (actionCenter) {
-        total += docs * 0.15;                // Hypothetical price for Action Center
+        const aius = totalPages * 0.2;
+        addRow("Multimodal Ingestion", aius, 0, aius * 0.20);
+      } else {
+        addRow("Multimodal Ingestion", 0, 0, 0);
       }
 
-      document.getElementById("result").innerText = `Estimated Cost: $${total.toFixed(2)}`;
+      addRow("MRS Agent", 0, docs, docs * 0.20);
+
+      const summarizationAIUs = docs * 0.05;
+      addRow("Summarization", summarizationAIUs, 0, summarizationAIUs * 0.20);
+
+      if (a4eChat) {
+        const users = parseInt(document.getElementById("a4e_users").value) || 0;
+        const calls = parseInt(document.getElementById("a4e_calls").value) || 0;
+        const billableCallsPerUser = Math.max(0, calls - 50);
+        const totalBillableCalls = users * billableCallsPerUser;
+        addRow("A4E Chat", totalBillableCalls, 0, totalBillableCalls * 0.20);
+      } else {
+        addRow("A4E Chat", 0, 0, 0);
+      }
+
+      document.getElementById("totalCost").innerText = `Estimated Total Cost: $${total.toFixed(2)}`;
+      document.querySelector("#breakdown tbody").innerHTML = rows.join("");
+      document.getElementById("breakdown").style.display = "table";
     }
   </script>
 </body>
