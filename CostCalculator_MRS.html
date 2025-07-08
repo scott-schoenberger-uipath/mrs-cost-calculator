@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Cost Estimator</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    label { display: block; margin: 8px 0 4px; }
+    input[type="number"] { width: 80px; }
+    .result { margin-top: 16px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h3>Document Cost Estimator</h3>
+  <label>Number of documents:
+    <input id="docs" type="number" min="0" />
+  </label>
+  <label>Pages per document:
+    <input id="pages" type="number" min="0" />
+  </label>
+  <label>
+    <input id="multimodal" type="checkbox" />
+    Include multimodal content? (charts, handwriting, etc.)
+  </label>
+  <label>
+    <input id="a4e_chat" type="checkbox" />
+    Include A4E Chat (optional)
+  </label>
+  <label>
+    <input id="action_center" type="checkbox" />
+    Include Action Center Licensing
+  </label>
+
+  <button onclick="calculate()">Estimate Cost</button>
+  <p class="result" id="result"></p>
+
+  <script>
+    function calculate() {
+      const docs = parseFloat(document.getElementById("docs").value) || 0;
+      const pages = parseFloat(document.getElementById("pages").value) || 0;
+      const multimodal = document.getElementById("multimodal").checked;
+      const a4eChat = document.getElementById("a4e_chat").checked;
+      const actionCenter = document.getElementById("action_center").checked;
+
+      let total = 0;
+
+      // Line item pricing logic
+      total += docs * 1.00;                  // Maestro Instance
+      total += docs * 0.20;                  // MRS Agent
+      total += docs * 0.01;                  // Summarization
+      if (multimodal) {
+        total += docs * pages * 0.04;        // 0.2 AIU/page × $0.20 = $0.04
+      }
+      if (a4eChat) {
+        total += docs * 0.10;                // Hypothetical price for A4E Chat
+      }
+      if (actionCenter) {
+        total += docs * 0.15;                // Hypothetical price for Action Center
+      }
+
+      document.getElementById("result").innerText = `Estimated Cost: $${total.toFixed(2)}`;
+    }
+  </script>
+</body>
+</html>
