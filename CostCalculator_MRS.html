@@ -20,8 +20,14 @@
   <label>Pages per document:
     <input id="pages" type="number" min="0" value="200">
   </label>
-  <label><input id="multimodal" type="checkbox" checked> Include multimodal content?</label>
-  <label><input id="a4e_chat" type="checkbox" onchange="toggleA4E()"> Include A4E Chat (optional)</label>
+  <label>
+    <input id="multimodal" type="checkbox" checked>
+    Include multimodal content? <span style="font-weight: normal;">(figures, images, handwriting, etc.)</span>
+  </label>
+  <label>
+    <input id="a4e_chat" type="checkbox" onchange="toggleA4E()">
+    Include A4E Chat (optional)
+  </label>
 
   <div id="a4e-options" style="display: none; margin-left: 20px; margin-bottom: 10px;">
     <label>Number of A4E users:
