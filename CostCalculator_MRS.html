@@ -42,8 +42,7 @@
         <th>Line Item</th>
         <th>AIUs</th>
         <th>Agent Units</th>
-        <th>Cost</th>
-        <th>Total Units</th>
+        <th>Cost (list)</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -66,14 +65,12 @@
       const rows = [];
 
       function addRow(name, aius, agentUnits, cost) {
-        const totalUnits = aius + agentUnits;
         total += cost;
         rows.push(`<tr>
           <td>${name}</td>
           <td>${aius.toFixed(2)}</td>
           <td>${agentUnits.toFixed(2)}</td>
           <td>$${cost.toFixed(2)}</td>
-          <td>${totalUnits.toFixed(2)}</td>
         </tr>`);
       }
 
